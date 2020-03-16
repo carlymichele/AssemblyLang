@@ -66,9 +66,15 @@ string multbin(string bin1, string bin2)
 
 	if(bin1 == "0" || bin2 == "0"){ //2. Base Case: if either number is 0, the product is 0.
 		binProd.append("0");
-	}else if(bin1 == "1" || bin2 == "2"){
-		(bin1 == "1" ? binProd.append(bin1) : binProd.append(bin2));
-	}else if (bin1.size() > bin2.size()){ //4. If bin1 is larger, use bin2 as multiplier
+	}else if(bin1 == "1" || bin2 == "1"){//3. If either number is 1, the product is equal to the other number.
+		(bin1 == "1" ? binProd.append(bin2) : binProd.append(bin1));
+	}else if(bin1 == bin2){ //if they are the same size, compare character values
+		for(int bit = 0; bit < bin1.size(); bit++){
+			for(int i = 0; i < (bin1.at(bit) == '1' ? exp2(bin1.size() - bit - 1) : 0); i++){
+				binProd = addbin(bin1, binProd);
+			}
+		}
+	}else if(bin1.size() > bin2.size()){ //4. If bin1 is larger, use bin2 as multiplier
 		for(int bit = 0; bit < bin2.size(); bit++){
 			for(int i = 0; i < (bin2.at(bit) == '1' ? exp2(bin2.size() - bit - 1) : 0); i++){
 				binProd = addbin(bin1, binProd);
@@ -90,10 +96,8 @@ string multhex(string hex1, string hex2)
 
 	if(hex1 == "0" || hex2 == "0"){
 		hexProd.append("0");
-	}else if(hex1 == "1"){
-		hexProd.append(hex2);
-	}else if(hex2 == "1"){
-		hexProd.append(hex1);
+	}else if(hex1 == "1" || hex2 == "1"){
+		(hex1 == "1" ? hexProd.append(hex2) : hexProd.append(hex1));
 	}else if(hex1.size() > hex2.size()){ //7. If hex1 is larger, use hex2 as multiplier
 		for(int bit = 0; bit < hex2.size(); bit++){
 			//9. Inside the for loop is a ternary operator that checks if each bit is a digit or a letter depending on the ASCII code value
@@ -107,7 +111,7 @@ string multhex(string hex1, string hex2)
 	}else{ /*11. If hex2 is larger than hex1, use hex1 as multiplier*/
 		for(int bit = 0; bit < hex1.size(); bit++){
 			for(int i = 0; i < (hex1.at(bit) <= 57 ? hex1.at(bit) - 48 : hex1.at(bit) - 55); i++){
-				for(int i = 0; i < (pow(16, hex2.size() - bit - 1)); i++){
+				for(int i = 0; i < (pow(16, hex1.size() - bit - 1)); i++){
 					hexProd = addhex(hex2, hexProd);
 				}
 			}
@@ -120,37 +124,36 @@ string multhex(string hex1, string hex2)
 string addbin(string bin1, string bin2)
 {
 	string binSum = "";
-	int rem = 0, carry = 0, sum = 0;
+	int rem = 0, carry = 0;
 
 	//1. This while loop ensures that both numbers are the same size
-	while(bin1.size() != bin2.size()){
-		// 2. It finds and concatenates the smallest number until it has the same size as the larger number
-		if(bin1.size() < bin2.size()){
-			//3. Using the difference in size, the for loop knows how many 0s to add
-			for(int i=0; i < (bin2.size() - bin1.size()); i++){
-				bin1.insert(0, "0");
-			}
-		}else{
-			//bin1.size() > bin2.size()
-			for(int i =0; i < (bin1.size() - bin2.size()); i++){
-				bin2.insert(0, "0");
-			}
-		}
+	//TODO: FIX COMMENTS
+	// 2. It finds and concatenates the smallest number until it has the same size as the larger number
+	if(bin1.size() < bin2.size()){
+		//3. Using the difference in size, the for loop knows how many 0s to add
+		bin1.insert(0, bin2.size() - bin1.size(), '0');
+	}else{
+		//bin1.size() > bin2.size()
+		bin2.insert(0, bin1.size() - bin2.size(), '0');
 	}
+
 
 	//4. Starting from the last bit, this for loop will add up each bit value
 	for(int bit = bin1.size() - 1; bit >= 0; bit--){
 		//5. Converts bit chars to ints with ascii code conversion
 		//6. Note that the carry from the last bit addition is always included in the current sum
-		sum = (bin1.at(bit) - 48) + (bin2.at(bit) - 48) + carry;
-		rem = sum % 2;
-		carry = sum / 2;
+		/*TODO: Changes made *TO REMOVE*:
+			int sum was removed, rem and carry were modified to contain value of sum
+		*/
+		carry = (bin1.at(bit) - 48) + (bin2.at(bit) - 48) + carry;
+		rem = carry % 2;
+		carry = carry / 2;
 
 		//7. Remainder value is inserted into binSum (either 0 or 1)
-		(rem) ? binSum.insert(0, "1") : binSum.insert(0, "0");
+		binSum.insert(0, 1, static_cast<char>(rem + 48));
 	}
 	//8. In case of excess carry, this if statement adds another 1 if necessary
-	if (carry == 1){
+	if(carry == 1){
 		binSum.insert(0, "1");
 	}
 
@@ -160,93 +163,34 @@ string addbin(string bin1, string bin2)
 string addhex(string hex1, string hex2)
 {
 	string hexSum = "";
-	int rem = 0, carry = 0, sum = 0;
+	int rem = 0, carry = 0;
 	// While loop is exactly like the one in addbin, concatenating the smallest string
-	while(hex1.size() != hex2.size()){
-		if(hex1.size() < hex2.size()){
-			for(int i=0; i < (hex2.size() - hex1.size()); i++){
-				hex1.insert(0, "0");
-			}
-		}else{
-			//if bin1.size() > bin2.size()
-			for(int i =0; i < (hex1.size() - hex2.size()); i++){
-				hex2.insert(0, "0");
-			}
-		}
+	if(hex1.size() < hex2.size()){
+		hex1.insert(0, hex2.size() - hex1.size(), '0');
+	}else{
+		//if hex1.size() > hex2.size()
+		hex2.insert(0, hex1.size() - hex2.size(), '0');
 	}
 
 	//Starting from the last bit, this for loop will add each bit value
 	for(int bit = hex1.size() - 1; bit >= 0; bit--){
 		//Converts bit chars to ints with ascii code conversion
-		sum = carry;
-		//9. Ternary function checks if bit is a digit or letter, then increments the sum
-		sum += ((hex1.at(bit) < 58) ? (hex1.at(bit) - 48) : (hex1.at(bit) - 55));
-		sum += ((hex2.at(bit) < 58) ? (hex2.at(bit) - 48) : (hex2.at(bit) - 55));
+		// sum = carry;
+		//9. Ternary function checks for each hex number if bit is a digit or letter, then increments the sum
+		carry += ((hex1.at(bit) < 58) ? (hex1.at(bit) - 48) : (hex1.at(bit) - 55)) + ((hex2.at(bit) < 58) ? (hex2.at(bit) - 48) : (hex2.at(bit) - 55));
 
-		rem = sum % 16;
-		carry = sum / 16;
+		rem = carry % 16;
+		carry = carry / 16;
 
-		//10. Switch statement inserts proper remainder value into hexSum
-
-		// TODO: if determine digit or letter
-		switch(rem){
-			case 0:
-				hexSum.insert(0,"0");
-				break;
-			case 1:
-				hexSum.insert(0,"1");
-				break;
-			case 2:
-				hexSum.insert(0,"2");
-				break;
-			case 3:
-				hexSum.insert(0,"3");
-				break;
-			case 4:
-				hexSum.insert(0,"4");
-				break;
-			case 5:
-				hexSum.insert(0,"5");
-				break;
-			case 6:
-				hexSum.insert(0,"6");
-				break;
-			case 7:
-				hexSum.insert(0,"7");
-				break;
-			case 8:
-				hexSum.insert(0,"8");
-				break;
-			case 9:
-				hexSum.insert(0,"9");
-				break;
-			case 10:
-				hexSum.insert(0,"A");
-				break;
-			case 11:
-				hexSum.insert(0,"B");
-				break;
-			case 12:
-				hexSum.insert(0,"C");
-				break;
-			case 13:
-				hexSum.insert(0,"D");
-				break;
-			case 14:
-				hexSum.insert(0,"E");
-				break;
-			case 15:
-				hexSum.insert(0,"F");
-				break;
-			default:
-				cout << "error in dec to hex switch" << endl;
-				break;
-		}
+		//10. Ternary statement inserts proper remainder value into hexSum
+		// If remainder is less than 10 (or its value is not a letter in hexadecimal), then it inserts with digit ascii value, else, a letter ascii code value
+		hexSum.insert(0, 1, static_cast<char>(rem < 10 ? rem + 48 : rem + 55));
 	}
 	//In case of excess carry, this if statement adds another 1 if necessary
-	if (carry == 1){
+	if(carry == 1){
 		hexSum.insert(0, "1");
 	}
+
 
 	return hexSum;
 
